@@ -1,0 +1,2008 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SLA Pause & Escalation Service",
+    "description": "逾期升级 SLA 暂停服务。\n\n- 暂停申请绑定事件 / 原因 / 证据，状态机：申请 → 批准生效 / 拒绝 → 结束 / 撤销；\n- 升级计算基于注入时钟，扣除已批准暂停区间的**并集**（重叠不重复延长）；\n- 结案后时钟冻结，不再升级，暂停不得重新启动；\n- 暂停不删除已产生升级、不改写已锁定处罚；迟到批准只产生待复核补偿建议，\n  确认后追加更正并保留原处罚链。\n",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/cases": {
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Create Case",
+        "operationId": "create_case_cases_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{case_id}": {
+      "get": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Get Case",
+        "operationId": "get_case_cases__case_id__get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{case_id}/close": {
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Close Case",
+        "operationId": "close_case_cases__case_id__close_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{case_id}/pause-requests": {
+      "post": {
+        "tags": [
+          "pauses"
+        ],
+        "summary": "Apply Pause",
+        "operationId": "apply_pause_cases__case_id__pause_requests_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseApplyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PauseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "pauses"
+        ],
+        "summary": "List Case Pauses",
+        "operationId": "list_case_pauses_cases__case_id__pause_requests_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PauseOut"
+                  },
+                  "title": "Response List Case Pauses Cases  Case Id  Pause Requests Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pause-requests": {
+      "get": {
+        "tags": [
+          "pauses"
+        ],
+        "summary": "List Pauses",
+        "operationId": "list_pauses_pause_requests_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PauseStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PauseOut"
+                  },
+                  "title": "Response List Pauses Pause Requests Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pause-requests/{pause_id}": {
+      "get": {
+        "tags": [
+          "pauses"
+        ],
+        "summary": "Get Pause",
+        "operationId": "get_pause_pause_requests__pause_id__get",
+        "parameters": [
+          {
+            "name": "pause_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pause Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PauseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pause-requests/{pause_id}/approve": {
+      "post": {
+        "tags": [
+          "pauses"
+        ],
+        "summary": "Approve Pause",
+        "operationId": "approve_pause_pause_requests__pause_id__approve_post",
+        "parameters": [
+          {
+            "name": "pause_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pause Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseApproveIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PauseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pause-requests/{pause_id}/reject": {
+      "post": {
+        "tags": [
+          "pauses"
+        ],
+        "summary": "Reject Pause",
+        "operationId": "reject_pause_pause_requests__pause_id__reject_post",
+        "parameters": [
+          {
+            "name": "pause_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pause Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseRejectIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PauseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pause-requests/{pause_id}/end": {
+      "post": {
+        "tags": [
+          "pauses"
+        ],
+        "summary": "End Pause",
+        "operationId": "end_pause_pause_requests__pause_id__end_post",
+        "parameters": [
+          {
+            "name": "pause_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pause Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseEndIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PauseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pause-requests/{pause_id}/cancel": {
+      "post": {
+        "tags": [
+          "pauses"
+        ],
+        "summary": "Cancel Pause",
+        "operationId": "cancel_pause_pause_requests__pause_id__cancel_post",
+        "parameters": [
+          {
+            "name": "pause_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pause Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseCancelIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PauseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{case_id}/escalations": {
+      "get": {
+        "tags": [
+          "escalations"
+        ],
+        "summary": "List Escalations",
+        "operationId": "list_escalations_cases__case_id__escalations_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EscalationOut"
+                  },
+                  "title": "Response List Escalations Cases  Case Id  Escalations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{case_id}/penalties": {
+      "get": {
+        "tags": [
+          "penalties"
+        ],
+        "summary": "List Case Penalties",
+        "operationId": "list_case_penalties_cases__case_id__penalties_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PenaltyOut"
+                  },
+                  "title": "Response List Case Penalties Cases  Case Id  Penalties Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/penalties/{penalty_id}": {
+      "get": {
+        "tags": [
+          "penalties"
+        ],
+        "summary": "Get Penalty",
+        "operationId": "get_penalty_penalties__penalty_id__get",
+        "parameters": [
+          {
+            "name": "penalty_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Penalty Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PenaltyOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/penalties/{penalty_id}/lock": {
+      "post": {
+        "tags": [
+          "penalties"
+        ],
+        "summary": "Lock Penalty",
+        "operationId": "lock_penalty_penalties__penalty_id__lock_post",
+        "parameters": [
+          {
+            "name": "penalty_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Penalty Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PenaltyOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{case_id}/sla-trace": {
+      "get": {
+        "tags": [
+          "trace"
+        ],
+        "summary": "Sla Trace",
+        "operationId": "sla_trace_cases__case_id__sla_trace_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlaTraceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compensation-suggestions": {
+      "get": {
+        "tags": [
+          "compensation"
+        ],
+        "summary": "List Suggestions",
+        "operationId": "list_suggestions_compensation_suggestions_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SuggestionStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SuggestionOut"
+                  },
+                  "title": "Response List Suggestions Compensation Suggestions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compensation-suggestions/{suggestion_id}/confirm": {
+      "post": {
+        "tags": [
+          "compensation"
+        ],
+        "summary": "Confirm Suggestion",
+        "operationId": "confirm_suggestion_compensation_suggestions__suggestion_id__confirm_post",
+        "parameters": [
+          {
+            "name": "suggestion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Suggestion Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionConfirmIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compensation-suggestions/{suggestion_id}/dismiss": {
+      "post": {
+        "tags": [
+          "compensation"
+        ],
+        "summary": "Dismiss Suggestion",
+        "operationId": "dismiss_suggestion_compensation_suggestions__suggestion_id__dismiss_post",
+        "parameters": [
+          {
+            "name": "suggestion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Suggestion Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionDismissIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/escalation-sweep": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Escalation Sweep",
+        "operationId": "escalation_sweep_jobs_escalation_sweep_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SweepSummaryOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Healthz",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CaseCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "sla_hours": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Sla Hours",
+            "description": "SLA 时限（小时）",
+            "default": 48.0
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At",
+            "description": "缺省为当前时钟"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "CaseCreate"
+      },
+      "CaseOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CaseStatus"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "sla_seconds": {
+            "type": "integer",
+            "title": "Sla Seconds"
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Due At"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "effective_elapsed_seconds": {
+            "type": "number",
+            "title": "Effective Elapsed Seconds",
+            "description": "扣除已批准暂停并集后的有效时长"
+          },
+          "remaining_seconds": {
+            "type": "number",
+            "title": "Remaining Seconds",
+            "description": "扣除暂停后的剩余时限"
+          },
+          "is_overdue": {
+            "type": "boolean",
+            "title": "Is Overdue"
+          },
+          "current_level": {
+            "type": "integer",
+            "title": "Current Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "started_at",
+          "sla_seconds",
+          "due_at",
+          "closed_at",
+          "effective_elapsed_seconds",
+          "remaining_seconds",
+          "is_overdue",
+          "current_level"
+        ],
+        "title": "CaseOut"
+      },
+      "CaseStatus": {
+        "type": "string",
+        "enum": [
+          "OPEN",
+          "CLOSED"
+        ],
+        "title": "CaseStatus"
+      },
+      "CountedPauseOut": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End"
+          },
+          "seconds": {
+            "type": "number",
+            "title": "Seconds"
+          },
+          "request_id": {
+            "type": "integer",
+            "title": "Request Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PauseStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "seconds",
+          "request_id",
+          "status"
+        ],
+        "title": "CountedPauseOut"
+      },
+      "EscalationOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "triggered_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Triggered At"
+          },
+          "effective_overdue_seconds": {
+            "type": "number",
+            "title": "Effective Overdue Seconds"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "level",
+          "triggered_at",
+          "effective_overdue_seconds",
+          "note"
+        ],
+        "title": "EscalationOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IntervalOut": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End"
+          },
+          "seconds": {
+            "type": "number",
+            "title": "Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "seconds"
+        ],
+        "title": "IntervalOut"
+      },
+      "PauseApplyIn": {
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Event Type",
+            "description": "事件类型，如 暴雨/封路"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Reason",
+            "description": "暂停原因"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Evidence",
+            "description": "证据链接/编号，至少一条"
+          },
+          "requested_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Start"
+          },
+          "requested_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_type",
+          "reason",
+          "evidence"
+        ],
+        "title": "PauseApplyIn"
+      },
+      "PauseApproveIn": {
+        "properties": {
+          "decided_by": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Decided By"
+          },
+          "approved_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Start",
+            "description": "缺省取申请起点，再缺省取当前时钟；早于当前时钟即迟到批准"
+          },
+          "approved_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decided_by"
+        ],
+        "title": "PauseApproveIn"
+      },
+      "PauseCancelIn": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "PauseCancelIn"
+      },
+      "PauseEndIn": {
+        "properties": {
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At",
+            "description": "缺省为当前时钟"
+          }
+        },
+        "type": "object",
+        "title": "PauseEndIn"
+      },
+      "PauseOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "requested_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Start"
+          },
+          "requested_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested End"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PauseStatus"
+          },
+          "approved_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Start"
+          },
+          "approved_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved End"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "decision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Reason"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "legacy_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legacy Ref"
+          },
+          "migration_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "event_type",
+          "reason",
+          "evidence",
+          "requested_start",
+          "requested_end",
+          "status",
+          "approved_start",
+          "approved_end",
+          "decided_by",
+          "decision_reason",
+          "ended_at",
+          "legacy_ref",
+          "migration_note",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PauseOut"
+      },
+      "PauseRejectIn": {
+        "properties": {
+          "decided_by": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Decided By"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decided_by",
+          "reason"
+        ],
+        "title": "PauseRejectIn"
+      },
+      "PauseStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "REJECTED",
+          "ENDED",
+          "CANCELLED"
+        ],
+        "title": "PauseStatus"
+      },
+      "PenaltyCorrectionOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "penalty_id": {
+            "type": "integer",
+            "title": "Penalty Id"
+          },
+          "suggestion_id": {
+            "type": "integer",
+            "title": "Suggestion Id"
+          },
+          "amount_delta_cents": {
+            "type": "integer",
+            "title": "Amount Delta Cents"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "penalty_id",
+          "suggestion_id",
+          "amount_delta_cents",
+          "note",
+          "created_at"
+        ],
+        "title": "PenaltyCorrectionOut"
+      },
+      "PenaltyOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "escalation_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escalation Id"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "title": "Amount Cents",
+            "description": "原始金额，永不改写"
+          },
+          "effective_amount_cents": {
+            "type": "integer",
+            "title": "Effective Amount Cents",
+            "description": "原始金额 + 已确认更正之和"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PenaltyStatus"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "locked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locked At"
+          },
+          "corrections": {
+            "items": {
+              "$ref": "#/components/schemas/PenaltyCorrectionOut"
+            },
+            "type": "array",
+            "title": "Corrections",
+            "description": "追加式更正链"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "escalation_id",
+          "amount_cents",
+          "effective_amount_cents",
+          "status",
+          "reason",
+          "created_at",
+          "locked_at"
+        ],
+        "title": "PenaltyOut"
+      },
+      "PenaltyStatus": {
+        "type": "string",
+        "enum": [
+          "OPEN",
+          "LOCKED"
+        ],
+        "title": "PenaltyStatus"
+      },
+      "SlaTraceOut": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_status": {
+            "$ref": "#/components/schemas/CaseStatus"
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Now"
+          },
+          "reference_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Reference At",
+            "description": "统计时点；结案后冻结在 closed_at"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "sla_seconds": {
+            "type": "integer",
+            "title": "Sla Seconds"
+          },
+          "raw_elapsed_seconds": {
+            "type": "number",
+            "title": "Raw Elapsed Seconds"
+          },
+          "paused_seconds": {
+            "type": "number",
+            "title": "Paused Seconds",
+            "description": "已批准暂停区间并集总时长（重叠不双算）"
+          },
+          "effective_elapsed_seconds": {
+            "type": "number",
+            "title": "Effective Elapsed Seconds"
+          },
+          "remaining_seconds": {
+            "type": "number",
+            "title": "Remaining Seconds"
+          },
+          "overdue_seconds": {
+            "type": "number",
+            "title": "Overdue Seconds"
+          },
+          "is_overdue": {
+            "type": "boolean",
+            "title": "Is Overdue"
+          },
+          "current_level": {
+            "type": "integer",
+            "title": "Current Level"
+          },
+          "counted_pause_intervals": {
+            "items": {
+              "$ref": "#/components/schemas/CountedPauseOut"
+            },
+            "type": "array",
+            "title": "Counted Pause Intervals"
+          },
+          "merged_pause_intervals": {
+            "items": {
+              "$ref": "#/components/schemas/IntervalOut"
+            },
+            "type": "array",
+            "title": "Merged Pause Intervals",
+            "description": "并集合并后的区间"
+          },
+          "escalations": {
+            "items": {
+              "$ref": "#/components/schemas/EscalationOut"
+            },
+            "type": "array",
+            "title": "Escalations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "case_status",
+          "now",
+          "reference_at",
+          "started_at",
+          "closed_at",
+          "sla_seconds",
+          "raw_elapsed_seconds",
+          "paused_seconds",
+          "effective_elapsed_seconds",
+          "remaining_seconds",
+          "overdue_seconds",
+          "is_overdue",
+          "current_level",
+          "counted_pause_intervals",
+          "merged_pause_intervals",
+          "escalations"
+        ],
+        "title": "SlaTraceOut",
+        "description": "追溯输出：有效时长如何由暂停并集扣减而来，全程可审计。"
+      },
+      "SuggestionConfirmIn": {
+        "properties": {
+          "decided_by": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Decided By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decided_by"
+        ],
+        "title": "SuggestionConfirmIn"
+      },
+      "SuggestionDismissIn": {
+        "properties": {
+          "decided_by": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Decided By"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decided_by",
+          "reason"
+        ],
+        "title": "SuggestionDismissIn"
+      },
+      "SuggestionKind": {
+        "type": "string",
+        "enum": [
+          "PENALTY_CREDIT",
+          "ESCALATION_REVIEW"
+        ],
+        "title": "SuggestionKind"
+      },
+      "SuggestionOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "pause_request_id": {
+            "type": "integer",
+            "title": "Pause Request Id"
+          },
+          "escalation_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escalation Id"
+          },
+          "penalty_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Penalty Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SuggestionKind"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "title": "Amount Cents"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SuggestionStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "pause_request_id",
+          "escalation_id",
+          "penalty_id",
+          "kind",
+          "amount_cents",
+          "reason",
+          "status",
+          "created_at",
+          "decided_at",
+          "decided_by"
+        ],
+        "title": "SuggestionOut"
+      },
+      "SuggestionStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING_REVIEW",
+          "CONFIRMED",
+          "DISMISSED"
+        ],
+        "title": "SuggestionStatus"
+      },
+      "SweepSummaryOut": {
+        "properties": {
+          "ran_at": {
+            "type": "string",
+            "title": "Ran At"
+          },
+          "cases_scanned": {
+            "type": "integer",
+            "title": "Cases Scanned"
+          },
+          "escalations_created": {
+            "type": "integer",
+            "title": "Escalations Created"
+          },
+          "penalties_created": {
+            "type": "integer",
+            "title": "Penalties Created"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ran_at",
+          "cases_scanned",
+          "escalations_created",
+          "penalties_created"
+        ],
+        "title": "SweepSummaryOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
